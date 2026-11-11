@@ -1,0 +1,27 @@
+name: Windows build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build application
+        shell: powershell
+        run: .\build.ps1
+      - name: Test keyboard conversions
+        shell: powershell
+        run: .\tests\test.ps1
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: AlienTranslate-Windows
+          path: dist/AlienTranslate.exe
+          if-no-files-found: error

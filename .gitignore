@@ -1,0 +1,7 @@
+/dist/
+/.vs/
+*.user
+*.suo
+*.log
+.env
+.env.*
