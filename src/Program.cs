@@ -89,6 +89,12 @@ namespace AlienTranslate
                 ChooseConversion(Kedmanee.FixThaiCapsLock));
             directionMenu.Items.Add("แก้ Caps Lock · อังกฤษ → ไทย", null, (sender, args) =>
                 ChooseConversion(Kedmanee.FixEnglishCapsLock));
+            directionMenu.Items.Add(new ToolStripSeparator());
+            directionMenu.Items.Add(new ToolStripMenuItem("ยกเลิก", null, (sender, args) =>
+            {
+                menuText = null;
+                directionMenu.Close();
+            }) { ShortcutKeyDisplayString = "Esc" });
             directionMenu.Closed += (sender, args) =>
             {
                 if (args.CloseReason != ToolStripDropDownCloseReason.ItemClicked)
@@ -122,6 +128,7 @@ namespace AlienTranslate
                 : "เปิดเมนูจากการคลิกขวาไม่ได้ในขณะนี้";
             result.Present("แป้นไทยเกษมณี ↔ อังกฤษ", selection + "\r\n\r\n" + copy
                 + "\r\n\r\nใน LINE เลือก “คัดลอกข้อความที่เลือก” เพื่อเปิดเมนูแปลง"
+                + "\r\n\r\nเลือก “ยกเลิก” หรือกด Esc เพื่อปิดเมนูแปลง"
                 + "\r\n\r\nShift+คลิกขวา เพื่อเปิดเฉพาะเมนูของแอป", Cursor.Position);
         }
 
