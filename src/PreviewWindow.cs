@@ -7,10 +7,13 @@ namespace AlienTranslate
     internal sealed class PreviewWindow : Form
     {
         private const int PaddingSize = 10;
+        private const int CloseButtonSize = 24;
+        private const int CloseButtonSpace = CloseButtonSize + PaddingSize;
         private const TextFormatFlags TextFlags = TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak
             | TextFormatFlags.TextBoxControl | TextFormatFlags.EndEllipsis;
 
         private readonly Timer dismissal = new Timer();
+        private readonly Button closeButton;
         private string previewText = "";
 
         internal PreviewWindow()
@@ -22,11 +25,22 @@ namespace AlienTranslate
             StartPosition = FormStartPosition.Manual;
             ShowInTaskbar = false;
             TopMost = true;
-            // A layered, transparent window passes clicks through to the source app.
-            Opacity = 0.995;
             BackColor = SystemColors.Info;
             ForeColor = SystemColors.InfoText;
             DoubleBuffered = true;
+            closeButton = new Button
+            {
+                Text = "×",
+                AccessibleName = "ปิดผลการแปลง",
+                Size = new Size(CloseButtonSize, CloseButtonSize),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = SystemColors.Info,
+                Cursor = Cursors.Hand,
+                TabStop = false
+            };
+            closeButton.FlatAppearance.BorderSize = 0;
+            closeButton.Click += (sender, args) => Dismiss();
+            Controls.Add(closeButton);
             dismissal.Tick += (sender, args) => Dismiss();
         }
 
@@ -38,8 +52,7 @@ namespace AlienTranslate
             {
                 var parameters = base.CreateParams;
                 const int noActivate = 0x08000000;
-                const int transparent = 0x00000020;
-                parameters.ExStyle |= noActivate | transparent;
+                parameters.ExStyle |= noActivate;
                 return parameters;
             }
         }
@@ -52,11 +65,12 @@ namespace AlienTranslate
                 ? text
                 : text.Substring(0, char.IsHighSurrogate(text[previewLimit - 1]) ? previewLimit - 1 : previewLimit) + "…";
             var area = Screen.FromPoint(anchor).WorkingArea;
-            int maxWidth = Math.Min(480, area.Width - 2 * PaddingSize);
+            int maxWidth = Math.Max(1, Math.Min(480, area.Width - 2 * PaddingSize) - CloseButtonSpace);
             int maxHeight = Math.Min(Font.Height * 8, area.Height - 2 * PaddingSize);
             var measured = TextRenderer.MeasureText(previewText, Font, new Size(maxWidth, maxHeight), TextFlags);
-            ClientSize = new Size(Math.Min(maxWidth, measured.Width) + 2 * PaddingSize,
-                Math.Min(maxHeight, measured.Height) + 2 * PaddingSize);
+            ClientSize = new Size(Math.Min(maxWidth, measured.Width) + 2 * PaddingSize + CloseButtonSpace,
+                Math.Max(CloseButtonSize, Math.Min(maxHeight, measured.Height)) + 2 * PaddingSize);
+            closeButton.Location = new Point(ClientSize.Width - PaddingSize - CloseButtonSize, PaddingSize);
             int x = Math.Max(area.Left, Math.Min(anchor.X + 12, area.Right - Width));
             int y = anchor.Y + 20;
             if (y + Height > area.Bottom)
@@ -73,6 +87,7 @@ namespace AlienTranslate
             base.OnPaint(args);
             ControlPaint.DrawBorder(args.Graphics, ClientRectangle, SystemColors.ControlDark, ButtonBorderStyle.Solid);
             var bounds = Rectangle.Inflate(ClientRectangle, -PaddingSize, -PaddingSize);
+            bounds.Width -= CloseButtonSpace;
             TextRenderer.DrawText(args.Graphics, previewText, Font, bounds, ForeColor, TextFlags);
         }
 
